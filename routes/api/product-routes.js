@@ -4,10 +4,10 @@ const { Product, Category, Tag, ProductTag } = require("../../models");
 // The `/api/products` endpoint
 
 // get all /api/products/ --- findAll ---
-router.get("/", (req, res) => {
+router.get("/", async (req, res) => {
   try {
-    const producttData = await Product.findAll({
-      include: [{ model: Product }],
+    const productData = await Product.findAll({
+      include: [{ model: Category }, { model: Tag }],
     });
     res.status(200).json(productData);
   } catch (err) {
@@ -16,9 +16,9 @@ router.get("/", (req, res) => {
 });
 
 // get one /api/products/:id --- findByPk ---
-router.get("/:id", (req, res) => {
+router.get("/:id", async (req, res) => {
   try {
-    const productData = await Product.findByPk({
+    const productData = await Product.findByPk(req.params.id, {
       include: [{ model: Category }, { model: Tag }],
     });
     res.status(200).json(productData);
@@ -28,19 +28,7 @@ router.get("/:id", (req, res) => {
 });
 
 // post /api/products/ --- create ---
-router.post("/", (req, res) => {
-  try {
-    const userData = await User.create({
-      product_name: req.body.username,
-      price: req.body.email,
-      stock: req.body.password,
-      tagIds: [1, 2, 3, 4],
-    });
-    res.status(200).json(userData);
-  } catch (err) {
-    res.status(400).json(err);
-  }
-
+router.post("/", async (req, res) => {
   Product.create(req.body)
     .then((product) => {
       // if there's product tags, we need to create pairings to bulk create in the ProductTag model
@@ -64,7 +52,7 @@ router.post("/", (req, res) => {
 });
 
 // put /api/products/:id --- update ---
-router.put("/:id", (req, res) => {
+router.put("/:id", async (req, res) => {
   // update product data
   Product.update(req.body, {
     where: {
@@ -105,7 +93,8 @@ router.put("/:id", (req, res) => {
     });
 });
 
-router.delete("/:id", (req, res) => {
+// delete /api/products/:id --- destroy ---
+router.delete("/:id", async (req, res) => {
   try {
     const productData = await Product.destroy({
       where: {
